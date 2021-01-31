@@ -23,20 +23,26 @@ import {
 
 export default memo(function HYAppPlaybar() {
   // props and state
+  // 是否正在播放
   const [isPlaying, setIsPlaying] = useState(false);
+  // 播放时长
   const [duration, setDuration] = useState(0);
+  // 当前时间
   const [currentTime, setCurrentTime] = useState(0);
+  // 步骤条的长度
   const [progress, setProgress] = useState(0);
+  // 是否正在拉动中
   const [isChanging, setIsChanging] = useState(false);
+  // 显示菜单
   const [showPanel, setShowPanel] = useState(false);
 
   // redux hooks
   const {
-    currentSong,
-    currentLyrics,
-    currentLyricIndex,
-    playList,
-    playSequence
+    currentSong,//目前歌曲
+    currentLyrics,//目前歌词
+    currentLyricIndex,//目前歌词的index
+    playList,//当前目录中播放的数目
+    playSequence,//当前顺序播放的标志
   } = useSelector(state => ({
     currentSong: state.getIn(["player", "currentSong"]),
     currentLyrics: state.getIn(["player", "currentLyrics"]),
@@ -54,15 +60,16 @@ export default memo(function HYAppPlaybar() {
 
   useEffect(() => {
     audioRef.current.src = getPlayUrl(currentSong.id);
-    audioRef.current.play().then(res => {
-      setIsPlaying(true);
-    }).catch(err => {
-      setIsPlaying(false);
-    });
+    // 下面是默认播放
+    // audioRef.current.play().then(res => {
+    //   setIsPlaying(true);
+    // }).catch(err => {
+    //   setIsPlaying(false);
+    // });
     setDuration(currentSong.dt);
   }, [currentSong]);
 
-  // 其他业务
+  // 播放与暂停
   const play = useCallback(() => {
     setIsPlaying(!isPlaying);
     isPlaying ? audioRef.current.pause() : audioRef.current.play().catch(err => {
@@ -70,6 +77,7 @@ export default memo(function HYAppPlaybar() {
     });
   }, [isPlaying]);
 
+  // audio更新时，触发的函数。
   const timeUpdate = (e) => {
     const currentTime = e.target.currentTime;
     if (!isChanging) {
@@ -96,7 +104,7 @@ export default memo(function HYAppPlaybar() {
       })
     }
   }
-
+// 当音频播放结束后。
   const timeEnded = () => {
     if (playSequence === 2 || playList.length === 1) {
       audioRef.current.currentTime = 0;
@@ -105,14 +113,14 @@ export default memo(function HYAppPlaybar() {
       dispatch(changePlaySongAction(1));
     }
   }
-
+// 滑动条改变时
   const sliderChange = useCallback((value) => {
     setProgress(value);
     const time = value / 100.0 * duration / 1000;
     setCurrentTime(time);
-    setIsChanging(true);
+    setIsChanging(true);  
   }, [duration])
-
+// 滑动条改变完成时。
   const sliderAfterChange = useCallback((value) => {
     const time = value / 100.0 * duration / 1000;
     audioRef.current.currentTime = time;

@@ -18,7 +18,7 @@ export default memo(function HYAppHeader() {
   const showItem = (item, index) => {
     if (index < 3) {
       return (
-        <NavLink to={item.link}>
+        <NavLink activeClassName="active" to={item.link}>
           {item.title}
           <i className="sprite_01 icon"></i>
         </NavLink>
